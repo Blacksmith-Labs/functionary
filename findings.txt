@@ -1,0 +1,39 @@
+17 seconds total
+
+importing modules takes 3 seconds
+ - from fastapi import FastAPI
+ - from functionary.inference import generate_message
+
+
+
+14 seconds calling chat_endpoint
+
+__enter__ (model = Model())
+ - Takes 5 seconds
+ - LlamaForCausalLM.from_pretrained
+
+generate_message takes 9.3 seconds
+
+
+Modal startup containers are:
+ - global lines of code (like imports)
+ - __enter__ functions
+
+Cold startup will sometimes take 2min 9s for model because of copying weights files >10gb to other host provider
+If files are already copied then 15s for enter and imports and 9s for chat_endpoint, cpu is slower but gpu is faster
+
+https://modal.com/docs/guide/cold-start
+
+
+
+glave or functionary
+
+
+
+spin up vllm instance
+blacksmith api
+
+https://modal.com/docs/guide/ex/vllm_inference
+
+https://llm-engine.scale.com/model_zoo/
+ - training

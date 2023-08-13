@@ -1,0 +1,153 @@
+
+Total time: 17.1873 s
+File: local_server_benchmark.py
+Function: my_function at line 2
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+     2                                           @profile
+     3                                           def my_function():
+     4         1       1043.8   1043.8      0.0      import uuid
+     5         1          1.3      1.3      0.0      from typing import List
+     6         1    1165101.5 1165101.5      6.8      from fastapi import FastAPI
+     7
+     8         1      11646.8  11646.8      0.1      from functionary.openai_types import ChatCompletion, ChatInput, Choice, Function, ChatMessage
+     9         1    1832868.3 1832868.3     10.7      from functionary.inference import generate_message
+    10
+    11         1        562.9    562.9      0.0      app = FastAPI(title="Functionary API")
+    12
+    13         1          0.3      0.3      0.0      MODEL = "musabgultekin/functionary-7b-v1"
+    14         1          0.1      0.1      0.0      LOADIN8BIT = False
+    15
+    16         2         34.6     17.3      0.0      @profile
+    17         1          0.4      0.4      0.0      def get_model():
+    18                                                   # this is lazy should be using the modal model class
+    19                                                   import torch
+    20                                                   from transformers import LlamaTokenizer, LlamaForCausalLM
+    21
+    22                                                   model = LlamaForCausalLM.from_pretrained(
+    23                                                       MODEL,
+    24                                                       low_cpu_mem_usage=True,
+    25                                                       device_map="auto",
+    26                                                       torch_dtype=torch.float16,
+    27                                                       load_in_8bit=LOADIN8BIT,
+    28                                                   )
+    29                                                   tokenizer = LlamaTokenizer.from_pretrained(MODEL, use_fast=False)
+    30                                                   return model, tokenizer
+    31
+    32         1         39.9     39.9      0.0      class Model:
+    33                                                   @profile
+    34                                                   def __init__(self):
+    35                                                       model, tokenizer = get_model()
+    36                                                       self.model = model
+    37                                                       self.tokenizer = tokenizer
+    38
+    39                                                   @profile
+    40                                                   def generate(
+    41                                                       self,
+    42                                                       messages: List[ChatMessage],
+    43                                                       functions: List[Function],
+    44                                                       temperature: float,
+    45                                                   ):
+    46                                                       return generate_message(
+    47                                                           messages=messages,
+    48                                                           functions=functions,
+    49                                                           temperature=temperature,
+    50                                                           model=self.model,  # type: ignore
+    51                                                           tokenizer=self.tokenizer,
+    52                                                       )
+    53
+    54         2         24.8     12.4      0.0      @profile
+    55         1          0.4      0.4      0.0      def chat_endpoint(chat_input: ChatInput):
+    56                                                   request_id = str(uuid.uuid4())
+    57                                                   model = Model()
+    58
+    59                                                   response_message = model.generate(
+    60                                                       messages=chat_input.messages,
+    61                                                       functions=chat_input.functions,
+    62                                                       temperature=chat_input.temperature,
+    63                                                   )
+    64
+    65                                                   return ChatCompletion(
+    66                                                       id=request_id, choices=[Choice.from_message(response_message)]
+    67                                                   )
+    68
+    69         1         30.9     30.9      0.0      chat_input = ChatInput(messages=[ChatMessage(role="assistant")])
+    70         1   14175632.5 14175632.5     82.5      result = chat_endpoint(chat_input)
+    71         1        354.2    354.2      0.0      print(result.json())
+
+Total time: 4.86325 s
+File: local_server_benchmark.py
+Function: get_model at line 16
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    16                                               @profile
+    17                                               def get_model():
+    18                                                   # this is lazy should be using the modal model class
+    19         1          1.1      1.1      0.0          import torch
+    20         1          4.0      4.0      0.0          from transformers import LlamaTokenizer, LlamaForCausalLM
+    21
+    22         1    4771342.9 4771342.9     98.1          model = LlamaForCausalLM.from_pretrained(
+    23         1          0.1      0.1      0.0              MODEL,
+    24         1          0.1      0.1      0.0              low_cpu_mem_usage=True,
+    25         1          0.1      0.1      0.0              device_map="auto",
+    26         1          0.4      0.4      0.0              torch_dtype=torch.float16,
+    27         1          0.1      0.1      0.0              load_in_8bit=LOADIN8BIT,
+    28                                                   )
+    29         1      91898.9  91898.9      1.9          tokenizer = LlamaTokenizer.from_pretrained(MODEL, use_fast=False)
+    30         1          0.6      0.6      0.0          return model, tokenizer
+
+Total time: 4.86326 s
+File: local_server_benchmark.py
+Function: __init__ at line 33
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    33                                                   @profile
+    34                                                   def __init__(self):
+    35         1    4863262.6 4863262.6    100.0              model, tokenizer = get_model()
+    36         1          1.1      1.1      0.0              self.model = model
+    37         1          0.3      0.3      0.0              self.tokenizer = tokenizer
+
+Total time: 9.31053 s
+File: local_server_benchmark.py
+Function: generate at line 39
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    39                                                   @profile
+    40                                                   def generate(
+    41                                                       self,
+    42                                                       messages: List[ChatMessage],
+    43                                                       functions: List[Function],
+    44                                                       temperature: float,
+    45                                                   ):
+    46         1    9310529.7 9310529.7    100.0              return generate_message(
+    47         1          0.1      0.1      0.0                  messages=messages,
+    48         1          0.1      0.1      0.0                  functions=functions,
+    49         1          0.1      0.1      0.0                  temperature=temperature,
+    50         1          0.2      0.2      0.0                  model=self.model,  # type: ignore
+    51         1          0.6      0.6      0.0                  tokenizer=self.tokenizer,
+    52                                                       )
+
+Total time: 14.1738 s
+File: local_server_benchmark.py
+Function: chat_endpoint at line 54
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    54                                               @profile
+    55                                               def chat_endpoint(chat_input: ChatInput):
+    56         1         14.3     14.3      0.0          request_id = str(uuid.uuid4())
+    57         1    4863268.9 4863268.9     34.3          model = Model()
+    58
+    59         1    9310543.4 9310543.4     65.7          response_message = model.generate(
+    60         1          1.4      1.4      0.0              messages=chat_input.messages,
+    61         1          0.3      0.3      0.0              functions=chat_input.functions,
+    62         1          0.4      0.4      0.0              temperature=chat_input.temperature,
+    63                                                   )
+    64
+    65         1          5.2      5.2      0.0          return ChatCompletion(
+    66         1          7.1      7.1      0.0              id=request_id, choices=[Choice.from_message(response_message)]
+    67                                                   )

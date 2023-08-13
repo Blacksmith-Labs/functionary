@@ -47,6 +47,7 @@ image = (
         "einops",
         "scipy",
         "numpy",
+        "jsonref",
     )
     .run_function(download_model)
 )
